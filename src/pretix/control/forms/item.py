@@ -53,6 +53,7 @@ class QuestionForm(I18nModelForm):
             'help_text',
             'type',
             'required',
+            'default_value',
             'ask_during_checkin',
             'identifier',
             'items'
