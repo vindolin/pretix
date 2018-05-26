@@ -171,6 +171,7 @@ class BaseQuestionsForm(forms.Form):
                 initial = None
             tz = pytz.timezone(event.settings.timezone)
             help_text = rich_text(q.help_text)
+            default = q.default_value
             if q.type == Question.TYPE_BOOLEAN:
                 if q.required:
                     # For some reason, django-bootstrap3 does not set the required attribute
@@ -181,6 +182,8 @@ class BaseQuestionsForm(forms.Form):
 
                 if initial:
                     initialbool = (initial.answer == "True")
+                elif default:
+                    initialbool = (default == "True")
                 else:
                     initialbool = False
 
@@ -193,21 +196,21 @@ class BaseQuestionsForm(forms.Form):
                 field = forms.DecimalField(
                     label=q.question, required=q.required,
                     help_text=q.help_text,
-                    initial=initial.answer if initial else None,
+                    initial=initial.answer if initial else default if default else None,
                     min_value=Decimal('0.00'),
                 )
             elif q.type == Question.TYPE_STRING:
                 field = forms.CharField(
                     label=q.question, required=q.required,
                     help_text=help_text,
-                    initial=initial.answer if initial else None,
+                    initial=initial.answer if initial else default if default else None,
                 )
             elif q.type == Question.TYPE_TEXT:
                 field = forms.CharField(
                     label=q.question, required=q.required,
                     help_text=help_text,
                     widget=forms.Textarea,
-                    initial=initial.answer if initial else None,
+                    initial=initial.answer if initial else default if default else None,
                 )
             elif q.type == Question.TYPE_CHOICE:
                 field = forms.ModelChoiceField(
@@ -237,21 +240,21 @@ class BaseQuestionsForm(forms.Form):
                 field = forms.DateField(
                     label=q.question, required=q.required,
                     help_text=help_text,
-                    initial=dateutil.parser.parse(initial.answer).date() if initial and initial.answer else None,
+                    initial=dateutil.parser.parse(initial.answer).date() if initial and initial.answer else dateutil.parser.parse(default).date() if default else None,
                     widget=DatePickerWidget(),
                 )
             elif q.type == Question.TYPE_TIME:
                 field = forms.TimeField(
                     label=q.question, required=q.required,
                     help_text=help_text,
-                    initial=dateutil.parser.parse(initial.answer).time() if initial and initial.answer else None,
+                    initial=dateutil.parser.parse(initial.answer).time() if initial and initial.answer else dateutil.parser.parse(default).time() if default else None,
                     widget=TimePickerWidget(time_format=get_format_without_seconds('TIME_INPUT_FORMATS')),
                 )
             elif q.type == Question.TYPE_DATETIME:
                 field = SplitDateTimeField(
                     label=q.question, required=q.required,
                     help_text=help_text,
-                    initial=dateutil.parser.parse(initial.answer).astimezone(tz) if initial and initial.answer else None,
+                    initial=dateutil.parser.parse(initial.answer).astimezone(tz) if initial and initial.answer  else dateutil.parser.parse(default).astimezone(tz) if default else None,
                     widget=SplitDateTimePickerWidget(time_format=get_format_without_seconds('TIME_INPUT_FORMATS')),
                 )
             field.question = q
