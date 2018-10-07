@@ -19,6 +19,7 @@ from django.views.generic import TemplateView
 
 from pretix.base.models import ItemVariation, Quota
 from pretix.base.models.event import SubEvent
+from pretix.base.models.items import ItemBundle
 from pretix.multidomain.urlreverse import eventreverse
 from pretix.presale.ical import get_ical
 from pretix.presale.views.organizer import (
@@ -69,6 +70,21 @@ def get_grouped_items(event, subevent=None, voucher=None):
         Prefetch('quotas',
                  to_attr='_subevent_quotas',
                  queryset=event.quotas.filter(subevent=subevent)),
+        Prefetch('bundles',
+                 queryset=ItemBundle.objects.prefetch_related(
+                     Prefetch('bundled_item',
+                              queryset=event.items.prefetch_related(
+                                  Prefetch('quotas',
+                                           to_attr='_subevent_quotas',
+                                           queryset=event.quotas.filter(subevent=subevent)),
+                              )),
+                     Prefetch('bundled_variation',
+                              queryset=event.items.prefetch_related(
+                                  Prefetch('quotas',
+                                           to_attr='_subevent_quotas',
+                                           queryset=event.quotas.filter(subevent=subevent)),
+                              )),
+                 )),
         Prefetch('variations', to_attr='available_variations',
                  queryset=ItemVariation.objects.filter(active=True, quotas__isnull=False).prefetch_related(
                      Prefetch('quotas',
@@ -109,7 +125,7 @@ def get_grouped_items(event, subevent=None, voucher=None):
                 )
             else:
                 item.cached_availability = list(
-                    item.check_quotas(subevent=subevent, _cache=quota_cache)
+                    item.check_quotas(subevent=subevent, _cache=quota_cache, include_bundled=True)
                 )
 
             item.order_max = min(
@@ -121,7 +137,7 @@ def get_grouped_items(event, subevent=None, voucher=None):
             price = item_price_override.get(item.pk, item.default_price)
             if voucher:
                 price = voucher.calculate_price(price)
-            item.display_price = item.tax(price)
+            item.display_price = item.tax(price, currency=event.currency)
 
             display_add_to_cart = display_add_to_cart or item.order_max > 0
         else:
@@ -132,7 +148,7 @@ def get_grouped_items(event, subevent=None, voucher=None):
                     )
                 else:
                     var.cached_availability = list(
-                        var.check_quotas(subevent=subevent, _cache=quota_cache)
+                        var.check_quotas(subevent=subevent, _cache=quota_cache, include_bundled=True)
                     )
 
                 var.order_max = min(
@@ -144,7 +160,7 @@ def get_grouped_items(event, subevent=None, voucher=None):
                 price = var_price_override.get(var.pk, var.price)
                 if voucher:
                     price = voucher.calculate_price(price)
-                var.display_price = var.tax(price)
+                var.display_price = var.tax(price, currency=event.currency)
 
                 display_add_to_cart = display_add_to_cart or var.order_max > 0
 
