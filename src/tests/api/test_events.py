@@ -150,7 +150,6 @@ def test_event_list(token_client, organizer, event):
 def test_event_get(token_client, organizer, event):
     resp = token_client.get('/api/v1/organizers/{}/events/{}/'.format(organizer.slug, event.slug))
     assert resp.status_code == 200
-    print(resp.data)
     assert TEST_EVENT_RES == resp.data
 
 

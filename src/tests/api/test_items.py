@@ -1425,7 +1425,6 @@ def test_question_update(token_client, organizer, event, question):
         },
         format='json'
     )
-    print(resp.content)
     assert resp.status_code == 200
     question = Question.objects.get(pk=resp.data['id'])
     assert question.question == "What's your shoe size?"

@@ -935,7 +935,6 @@ class CheckoutTestCase(TestCase):
 
         response = self.client.post('/%s/%s/checkout/confirm/' % (self.orga.slug, self.event.slug), follow=True)
         doc = BeautifulSoup(response.rendered_content, "lxml")
-        print(doc)
         self.assertEqual(len(doc.select(".thank-you")), 1)
         self.assertFalse(CartPosition.objects.filter(id=cr1.id).exists())
         self.assertEqual(Order.objects.count(), 1)

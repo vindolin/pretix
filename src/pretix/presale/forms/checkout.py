@@ -138,7 +138,6 @@ class AddOnsForm(forms.Form):
         if override_price:
             price = override_price
 
-        print(price, repr(price), type(price), repr(item.default_price))
         if self.price_included:
             price = TAXED_ZERO
         else:

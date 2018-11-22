@@ -570,7 +570,6 @@ def test_question_number(token_client, organizer, clist, event, order, question)
     resp = token_client.post('/api/v1/organizers/{}/events/{}/checkinlists/{}/positions/{}/redeem/'.format(
         organizer.slug, event.slug, clist.pk, order.positions.first().pk
     ), {'answers': {question[0].pk: "3.24"}}, format='json')
-    print(resp.data)
     assert resp.status_code == 201
     assert resp.data['status'] == 'ok'
     assert order.positions.first().answers.get(question=question[0]).answer == '3.24'

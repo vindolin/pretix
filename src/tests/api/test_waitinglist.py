@@ -159,7 +159,6 @@ def create_wle(token_client, organizer, event, data, expected_failure=False):
     if expected_failure:
         assert resp.status_code == 400
     else:
-        print(resp.data)
         assert resp.status_code == 201
         return WaitingListEntry.objects.get(pk=resp.data['id'])
 
