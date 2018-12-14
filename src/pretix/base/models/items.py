@@ -170,10 +170,9 @@ class ItemQuerySet(models.QuerySet):
         vouchq = Q(hide_without_voucher=False)
         if voucher:
             if voucher.item_id:
-                vouchq |= Q(pk=voucher.item_id)
-                qs = qs.filter(pk=voucher.item_id)
+                vouchq = Q(pk=voucher.item_id)
             elif voucher.quota_id:
-                qs = qs.filter(quotas__in=[voucher.quota_id])
+                vouchq = Q(quotas__in=[voucher.quota_id])
         return qs.filter(vouchq)
 
 
